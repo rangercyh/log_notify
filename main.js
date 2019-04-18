@@ -15,22 +15,28 @@ let callback = function(event) {
     }
 }
 
-for (let i = 2; i < process.argv.length; i++) {
-    console.log(process.argv[i])
-    fs.stat(process.argv[i], (err, stats) => {
-        if (err == 'undefined') {
-            if (stats.isFile()) {
-                console.log('watch file:', file_path)
-                inotify.addWatch({
-                    path: file_path,
-                    watch_for: Inotify.IN_MODIFY,
-                    callback: callback,
-                })
-            } else {
-                console.error(file_path, 'is not a file path!!!')
-            }
-        } else {
-            console.error(err)
+let start = function() {
+    if (Array.isArray(process.argv[2])) {
+        for (let i = 2; i < process.argv.length; i++) {
+            console.log(process.argv[i])
+            fs.stat(process.argv[i], (err, stats) => {
+                if (err == 'undefined') {
+                    if (stats.isFile()) {
+                        console.log('watch file:', file_path)
+                        inotify.addWatch({
+                            path: file_path,
+                            watch_for: Inotify.IN_MODIFY,
+                            callback: callback,
+                        })
+                    } else {
+                        console.error(file_path, 'is not a file path!!!')
+                    }
+                } else {
+                    console.error(err)
+                }
+            })
         }
-    })
+    }
 }
+
+start()
