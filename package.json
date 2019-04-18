@@ -1,0 +1,8 @@
+{
+  "name": "log_notify",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "inotify": "~1.4.6"
+  }
+}
