@@ -4,7 +4,7 @@ const assert = require('assert')
 const crypto = require('crypto')
 let mongo = require('./mongo')
 
-const err_regex = /^2019.+(EMG.+|ALT.+|CRI.+|ERR.+|DBG.+|INF.+)/gm
+const err_regex = /^2019.+(EMG.+|ALT.+|CRI.+|ERR.+)/gm
 
 let get_today_ts = function() {
     return new Date().toDateString()
