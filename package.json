@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "chokidar": "latest"
+    "chokidar": "latest",
+    "mongodb": "latest"
   }
 }

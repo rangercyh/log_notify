@@ -1,5 +1,42 @@
 const fs = require('fs')
 const chokidar = require('chokidar')
+const assert = require('assert')
+const crypto = require('crypto')
+let mongo = require('./mongo')
+
+const err_regex = /^2019.+(EMG.+|ALT.+|CRI.+|ERR.+|DBG.+|INF.+)/gm
+
+let get_today_ts = function() {
+    return new Date().toDateString()
+}
+
+let md5_hash = function(str) {
+    const md5 = crypto.createHash('md5')
+    return md5.update(str).digest('hex')
+}
+
+let process_error = function(path, str) {
+    let err_list = []
+    while ((arr = err_regex.exec(str)) !== null) {
+        err_list.push(arr)
+    }
+    for (let i = 0; i < err_list.length; i++) {
+        let key = err_list[i][1]
+        let msg
+        if (err_list[i+1]) {
+            msg = str.slice(err_list[i].index, err_list[i+1].index)
+        } else {
+            msg = str.slice(err_list[i].index)
+        }
+        let ts = get_today_ts()
+        console.log('key = ', key, ts, path)
+        mongo.update(md5_hash(key + ts + path), msg, path, ts, (notify) => {
+            if (notify) {
+                console.log('new error occur!!', msg)
+            }
+        })
+    }
+}
 
 let start = function() {
     let file_last_pos = {}
@@ -23,7 +60,7 @@ let start = function() {
                     let buffer = Buffer.alloc(len)
                     fs.read(fd, buffer, 0, len, old_pos, (err, bytesRead, buffer) => {
                         if (err) throw err
-                        console.log('change text = ', buffer.slice(0, bytesRead).toString())
+                        process_error(path, buffer.slice(0, bytesRead).toString())
                     })
 
                 })
@@ -32,4 +69,6 @@ let start = function() {
     }
 }
 
-start()
+mongo.connect(() => {
+    start()
+})
