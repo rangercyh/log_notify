@@ -1,39 +1,32 @@
 const fs = require('fs')
-const Inotify = require('inotify').Inotify
-let inotify = new Inotify()
-
-let callback = function(event) {
-    var mask = event.mask
-    var type = mask & Inotify.IN_ISDIR ? 'directory' : 'file'
-    if (event.name) {
-        type += ' ' + event.name + ' '
-    } else {
-        type += ' '
-    }
-    if (mask & Inotify.IN_MODIFY) {
-        console.log(type + 'modify!!')
-    }
-}
+const chokidar = require('chokidar')
 
 let start = function() {
-    if (Array.isArray(process.argv[2])) {
-        for (let i = 2; i < process.argv.length; i++) {
-            console.log(process.argv[i])
-            fs.stat(process.argv[i], (err, stats) => {
-                if (err == 'undefined') {
-                    if (stats.isFile()) {
-                        console.log('watch file:', file_path)
-                        inotify.addWatch({
-                            path: file_path,
-                            watch_for: Inotify.IN_MODIFY,
-                            callback: callback,
-                        })
-                    } else {
-                        console.error(file_path, 'is not a file path!!!')
-                    }
-                } else {
-                    console.error(err)
+    let file_last_pos = {}
+    for (let i = 2; i < process.argv.length; i++) {
+        let file_path = process.argv[i]
+        let stats = fs.statSync(file_path)
+        if (stats.isFile()) {
+            file_last_pos[file_path] = stats.size
+            console.log('===== init = ', file_path, stats.size)
+            chokidar.watch(file_path).on('change', (path, stats) => {
+                console.log('onchange', path)
+                let old_pos = file_last_pos[path]
+                file_last_pos[path] = stats.size
+                if (stats.size < old_pos) {
+                    old_pos = 0
                 }
+                let len = stats.size - old_pos
+                console.log('len = ', len, old_pos, stats.size)
+                fs.open(path, "r", (err, fd) => {
+                    if (err) throw err
+                    let buffer = Buffer.alloc(len)
+                    fs.read(fd, buffer, 0, len, old_pos, (err, bytesRead, buffer) => {
+                        if (err) throw err
+                        console.log('change text = ', buffer.slice(0, bytesRead).toString())
+                    })
+
+                })
             })
         }
     }
