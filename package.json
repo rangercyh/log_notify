@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "chokidar": "latest",
-    "mongodb": "latest"
+    "mongodb": "latest",
+    "nodemailer": "latest"
   }
 }

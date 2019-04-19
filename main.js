@@ -3,6 +3,7 @@ const chokidar = require('chokidar')
 const assert = require('assert')
 const crypto = require('crypto')
 let mongo = require('./mongo')
+let mail_send = require('./mail')
 
 const err_regex = /^2019.+(EMG.+|ALT.+|CRI.+|ERR.+)/gm
 
@@ -33,6 +34,7 @@ let process_error = function(path, str) {
         mongo.update(md5_hash(key + ts + path), msg, path, ts, (notify) => {
             if (notify) {
                 console.log('new error occur!!', msg)
+                mail_send(path, msg)
             }
         })
     }
