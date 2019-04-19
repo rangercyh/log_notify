@@ -5,7 +5,7 @@ const crypto = require('crypto')
 let mongo = require('./mongo')
 let mail_send = require('./mail')
 
-const err_regex = /^2019.+(EMG.+|ALT.+|CRI.+|ERR.+)/gm
+const err_regex = /^2019.+(EMG.+?\[|ALT.+?\[|CRI.+?\[|ERR.+?\[)/gm
 
 let get_today_ts = function() {
     return new Date().toDateString()
