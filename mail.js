@@ -23,6 +23,6 @@ let mailOptions = {
 module.exports = function(path, content) {
     let text = '文件路径：' + path + '\n'
     text += '报错内容：\n' + content + '\n'
-    mailOptions.html = text
+    mailOptions.text = text
     transporter.sendMail(mailOptions)
 }
