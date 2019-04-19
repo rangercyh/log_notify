@@ -18,7 +18,7 @@ module.exports = {
     },
     update: function(key, msg, file_path, ts, cb) {
         try {
-            _db.collection('error_log').updateOne({key: key}, {$set: {msg: msg, file_path: file_path, date: ts}}, {upsert: true}, (err, r) => {
+            _db.collection('error_log').updateOne({key: key}, {$set: {msg: msg, file_path: file_path, date: ts}, $inc: {count: 1}}, {upsert: true}, (err, r) => {
                 console.log('r.matchedCount = ', key, r.matchedCount)
                 cb(r.matchedCount <= 0)
             })
