@@ -2,10 +2,13 @@ const fs = require('fs')
 const chokidar = require('chokidar')
 const assert = require('assert')
 const crypto = require('crypto')
+
 let mongo = require('./mongo')
 let mail_send = require('./mail')
 
 const err_regex = /^2019.+(EMG.+?\[|ALT.+?\[|CRI.+?\[|ERR.+?\[)/gm
+
+let mail_queue = []
 
 let get_today_ts = function() {
     return new Date().toDateString()
@@ -34,7 +37,11 @@ let process_error = function(path, str) {
         mongo.update(md5_hash(key + ts + path), msg, path, ts, (notify) => {
             if (notify) {
                 console.log('new error occur!!', msg)
-                mail_send(path, msg)
+                // mail_send(path, msg)
+                mail_queue.push({
+                    path: path,
+                    msg: msg,
+                })
             }
         })
     }
@@ -73,4 +80,10 @@ let start = function() {
 
 mongo.connect(() => {
     start()
+    setInterval(function() {
+        if (mail_queue.length > 0) {
+            let mail_data = mail_queue.shift()
+            mail_send(mail_data.path, mail_data.msg)
+        }
+    }, 15000)
 })
