@@ -2,19 +2,17 @@ const fs = require('fs')
 const chokidar = require('chokidar')
 const assert = require('assert')
 const crypto = require('crypto')
-const sentry = require('@sentry/node')
+const Sentry = require('@sentry/node')
 
 const err_regex = /^2019.+(EMG.+?\[|ALT.+?\[|CRI.+?\[|ERR.+?\[)/gm
-sentry.init({ dsn: 'http://303feed519b64d2f86807ced0c5a23fb@192.168.5.48:9000/2' })
-
-// let get_today_ts = function() {
-//     return new Date().toDateString()
-// }
-
-// let md5_hash = function(str) {
-//     const md5 = crypto.createHash('md5')
-//     return md5.update(str).digest('hex')
-// }
+Sentry.init({
+    dsn: 'http://303feed519b64d2f86807ced0c5a23fb@192.168.5.48:9000/2',
+    defaultIntegrations: false,
+    beforeSend(event) {
+        event.fingerprint = [ event.extra.key ]
+        return event
+    }
+})
 
 let process_error = function(path, str) {
     let err_list = []
@@ -29,7 +27,14 @@ let process_error = function(path, str) {
         } else {
             msg = str.slice(err_list[i].index)
         }
-        sentry.captureMessage(msg)
+        Sentry.captureEvent({
+            message: msg,
+            level: 'error',
+            extra: {
+                file_path: path,
+                key: key,
+            },
+        })
     }
 }
 
