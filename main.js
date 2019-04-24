@@ -2,22 +2,19 @@ const fs = require('fs')
 const chokidar = require('chokidar')
 const assert = require('assert')
 const crypto = require('crypto')
-
-let mongo = require('./mongo')
-let mail_send = require('./mail')
+const sentry = require('@sentry/node')
 
 const err_regex = /^2019.+(EMG.+?\[|ALT.+?\[|CRI.+?\[|ERR.+?\[)/gm
+sentry.init({ dsn: 'http://303feed519b64d2f86807ced0c5a23fb@192.168.5.48:9000/2' })
 
-let mail_queue = []
+// let get_today_ts = function() {
+//     return new Date().toDateString()
+// }
 
-let get_today_ts = function() {
-    return new Date().toDateString()
-}
-
-let md5_hash = function(str) {
-    const md5 = crypto.createHash('md5')
-    return md5.update(str).digest('hex')
-}
+// let md5_hash = function(str) {
+//     const md5 = crypto.createHash('md5')
+//     return md5.update(str).digest('hex')
+// }
 
 let process_error = function(path, str) {
     let err_list = []
@@ -32,18 +29,7 @@ let process_error = function(path, str) {
         } else {
             msg = str.slice(err_list[i].index)
         }
-        let ts = get_today_ts()
-        console.log('key = ', key, ts, path)
-        mongo.update(md5_hash(key + ts + path), msg, path, ts, (notify) => {
-            if (notify) {
-                console.log('new error occur!!', msg)
-                // mail_send(path, msg)
-                mail_queue.push({
-                    path: path,
-                    msg: msg,
-                })
-            }
-        })
+        sentry.captureMessage(msg)
     }
 }
 
@@ -78,12 +64,4 @@ let start = function() {
     }
 }
 
-mongo.connect(() => {
-    start()
-    setInterval(function() {
-        if (mail_queue.length > 0) {
-            let mail_data = mail_queue.shift()
-            mail_send(mail_data.path, mail_data.msg)
-        }
-    }, 15000)
-})
+start()
