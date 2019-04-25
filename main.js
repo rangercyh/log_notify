@@ -6,7 +6,7 @@ const Sentry = require('@sentry/node')
 
 const err_regex = /^2019.+(EMG.+?\[|ALT.+?\[|CRI.+?\[|ERR.+?\[)/gm
 Sentry.init({
-    dsn: 'http://fbfb4bc1d0064131badac7de87025b77@192.168.5.48:9000/3',
+    dsn: 'http://xxx@xxx',
     defaultIntegrations: false,
     beforeSend(event) {
         event.fingerprint = [ event.extra.key ]
