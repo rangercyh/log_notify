@@ -33,6 +33,7 @@ let process_error = function(path, str) {
             extra: {
                 file_path: path,
                 key: key,
+                msg: msg,
             },
         })
     }
