@@ -6,7 +6,7 @@ const Sentry = require('@sentry/node')
 
 const err_regex = /^2019.+(EMG.+?\[|ALT.+?\[|CRI.+?\[|ERR.+?\[)/gm
 Sentry.init({
-    dsn: 'http://xxx@xxx',
+    dsn: 'http://xxx',
     defaultIntegrations: false,
     beforeSend(event) {
         event.fingerprint = [ event.extra.key ]
@@ -19,24 +19,36 @@ let process_error = function(path, str) {
     while ((arr = err_regex.exec(str)) !== null) {
         err_list.push(arr)
     }
-    for (let i = 0; i < err_list.length; i++) {
-        let key = err_list[i][1]
-        let msg
-        if (err_list[i+1]) {
-            msg = str.slice(err_list[i].index, err_list[i+1].index)
-        } else {
-            msg = str.slice(err_list[i].index)
-        }
+    if (err_list.length > 0) {
         Sentry.captureEvent({
-            message: msg,
+            message: err_list.join('\n'),
             level: 'error',
             extra: {
                 file_path: path,
-                key: key,
-                msg: msg,
+                key: err_list[0][1],
+                err_list: err_list,
+                msg: str,
             },
         })
     }
+    // for (let i = 0; i < err_list.length; i++) {
+    //     let key = err_list[i][1]
+    //     let msg
+    //     if (err_list[i+1]) {
+    //         msg = str.slice(err_list[i].index, err_list[i+1].index)
+    //     } else {
+    //         msg = str.slice(err_list[i].index)
+    //     }
+    //     Sentry.captureEvent({
+    //         message: msg,
+    //         level: 'error',
+    //         extra: {
+    //             file_path: path,
+    //             key: key,
+    //             msg: msg,
+    //         },
+    //     })
+    // }
 }
 
 let start = function() {
